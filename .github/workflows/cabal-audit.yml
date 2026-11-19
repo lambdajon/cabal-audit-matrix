@@ -40,5 +40,7 @@ jobs:
           cabal-version: '3.16.1.0'
           enable-stack: false
 
+      - run: cabal update
+
       # Runs cabal-audit and uploads the SARIF report to GitHub code scanning
       - uses: blackheaven/haskell-security-action@df18e40481ae37a2a023308720b701063a98157b # v1.1.0
