@@ -20,18 +20,23 @@ jobs:
         run: echo "ghcs=$(cat ./.github/workflows/supported-ghc-versions.json)" >> $GITHUB_OUTPUT
 
   cabal-audit:
-    name: "Scan dependencies for vulnerabilities"
+    name: "Scan dependencies for vulnerabilities (GHC ${{ matrix.ghc }})"
+    needs: pre_job
     runs-on: ubuntu-latest
     permissions:
       contents: read
       security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        ghc: ${{ fromJSON(needs.pre_job.outputs.ghcs) }}
     steps:
       - uses: actions/checkout@v7
 
       # cabal-audit computes the build plan, so GHC and cabal must be on $PATH
       - uses: haskell-actions/setup@v2.11
         with:
-          ghc-version: '9.12'
+          ghc-version: ${{ matrix.ghc }}
           cabal-version: '3.16.1.0'
           enable-stack: false
 
