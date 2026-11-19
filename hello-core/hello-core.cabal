@@ -1,0 +1,26 @@
+cabal-version: 3.4
+name:          hello-core
+version:       0.1.0.0
+synopsis:      Sub-package (like hls-graph / ghcide in HLS)
+license:       Apache-2.0
+build-type:    Simple
+tested-with:   GHC ==9.6.7 || ==9.8.4 || ==9.10.3 || ==9.12.2 || ==9.14.1
+
+flag json
+  description: Enable aeson-based JSON greeting
+  default:     True
+  manual:      True
+
+library
+  default-language: GHC2021
+  ghc-options:      -Wall
+  hs-source-dirs:   src
+  exposed-modules:  Hello.Core
+  build-depends:
+    , base        >=4.18 && <5
+    , bytestring
+    , text        >=2.0
+
+  if flag(json)
+    cpp-options:   -DJSON
+    build-depends: aeson >=2.1 && <2.3

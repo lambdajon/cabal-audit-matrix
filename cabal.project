@@ -1,0 +1,45 @@
+packages:
+         ./
+         ./hello-core
+
+index-state: 2026-10-07T00:00:00Z
+
+tests: True
+test-show-details: direct
+
+write-ghc-environment-files: never
+
+package *
+  ghc-options: -haddock
+
+constraints:
+  -- flag constraint, same shape as HLS' `stylish-haskell +ghc-lib`
+  hello-core +json,
+  text >=2.0,
+
+-- Unconditional allow-newer, like HLS' cabal-install-parsers:Cabal-syntax
+allow-newer:
+  hashable:base,
+
+-- GHC-conditional blocks: the resolved plan (and so the audit result)
+-- differs per compiler in the matrix.
+if impl(ghc >= 9.6) && impl(ghc < 9.10)
+  constraints: aeson ^>=2.1
+
+if impl(ghc >= 9.10) && impl(ghc < 9.11)
+  constraints: aeson ^>=2.2
+
+if impl(ghc >= 9.13)
+  allow-newer:
+    aeson:containers,
+    aeson:template-haskell,
+    aeson:time,
+
+if impl(ghc >= 9.14)
+  allow-newer:
+    indexed-traversable:base,
+    indexed-traversable:containers,
+    semialign:base,
+    these:base,
+    time-compat:base,
+    time-compat:time,
