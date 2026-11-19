@@ -19,9 +19,41 @@ jobs:
       - id: ghcs
         run: echo "ghcs=$(cat ./.github/workflows/supported-ghc-versions.json)" >> $GITHUB_OUTPUT
 
+  build-cabal-audit:
+    runs-on: ubuntu-latest
+    env:
+      CABAL_AUDIT_REV: 075deb5dff271725276cc928642b377694ec6ea0
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          repository: MangoIV/cabal-audit
+          ref: ${{ env.CABAL_AUDIT_REV }}
+
+      - id: setup
+        uses: haskell-actions/setup@v2.11
+        with:
+          ghc-version: '9.12.2'
+          cabal-version: '3.16.1.0'
+          enable-stack: false
+
+      - run: cabal update
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.setup.outputs.cabal-store }}
+          key: cabal-audit-${{ runner.os }}-${{ env.CABAL_AUDIT_REV }}
+          restore-keys: cabal-audit-${{ runner.os }}-
+
+      - run: cabal install exe:cabal-audit --installdir=bin --install-method=copy
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cabal-audit
+          path: bin/cabal-audit
+
   cabal-audit:
     name: "Scan dependencies for vulnerabilities (GHC ${{ matrix.ghc }})"
-    needs: pre_job
+    needs: [pre_job, build-cabal-audit]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -42,10 +74,12 @@ jobs:
 
       - run: cabal update
 
-      - name: Download cabal-audit
-        run: |
-          wget https://github.com/MangoIV/cabal-audit/releases/download/nightly/cabal-audit -O "$RUNNER_TEMP/cabal-audit"
-          chmod +x "$RUNNER_TEMP/cabal-audit"
+      - uses: actions/download-artifact@v4
+        with:
+          name: cabal-audit
+          path: ${{ runner.temp }}
+
+      - run: chmod +x "$RUNNER_TEMP/cabal-audit"
 
       - name: Run cabal-audit
         run: |
